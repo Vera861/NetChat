@@ -15,9 +15,9 @@ public class MyServer {
     private List<ClientHandler> clients;
     private AuthService authService;
 
-    public MyServer () {
+    public MyServer() {
         server = this;
-        try(ServerSocket server = new ServerSocket(PORT)) {
+        try (ServerSocket server = new ServerSocket(PORT)) {
             authService = new BaseAuthService();
             authService.start();
             clients = new ArrayList<>();
@@ -30,7 +30,7 @@ public class MyServer {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (authService != null){
+            if (authService != null) {
                 authService.stop();
             }
         }
@@ -40,7 +40,7 @@ public class MyServer {
         clients.remove(clientHandler);
     }
 
-    public synchronized  void subscribe(ClientHandler clientHandler) {
+    public synchronized void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
     }
 
@@ -57,6 +57,17 @@ public class MyServer {
             }
         }
         return false;
+    }
+
+    public synchronized void sendMsgToClient(ClientHandler fromClient, String nickTo, String msg) {
+        for (ClientHandler client : clients) {
+            if (client.getName().equals(nickTo)) {
+                client.sendMsg("от пользователя " + fromClient.getName() + ": " + msg);
+                fromClient.sendMsg("клиенту " + nickTo + ": " + msg);
+                return;
+            }
+        }
+        fromClient.sendMsg("Участник с ником \"" + nickTo + "\" не найден");
     }
 
     public AuthService getAuthService() {
