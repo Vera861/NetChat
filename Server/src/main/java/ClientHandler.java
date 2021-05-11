@@ -36,7 +36,6 @@ public class ClientHandler {
     private void auth() throws IOException {
         while (true) {
             String str = in.readUTF();
-            //  /auth login1 pass1
             if (str.startsWith("/auth")) {
                 String[] parts = str.split(" ");
                 String login = parts[1];
@@ -62,10 +61,22 @@ public class ClientHandler {
     }
 
     public void sendMsg(String msg) {
-        try {
-            out.writeUTF(msg);
-        } catch (IOException e) {
-            e.printStackTrace();
+        while (socket.isConnected()) {
+            String strFromClient = in.readUTF();
+            System.out.println("от " + name + ": " + strFromClient);
+            if (strFromClient.startsWith("/")) {
+                if (strFromClient.equals("/end")) {
+                    return;
+                }
+                if (strFromClient.startsWith("/w ")) {
+                    String[] parts = strFromClient.split(" ");
+                    String nickTo = parts[1];
+                    String msg = strFromClient.substring(3 + nickTo.length() + 1);
+                    server.sendMsgToClient(this, nickTo, msg);
+                }
+                continue;
+            }
+            server.broadcastMsg(name + ": " + strFromClient);
         }
     }
 
